@@ -59,14 +59,14 @@ function Get-DKIMRecord {
         foreach ($domain in $Name) {
     
         if ($DkimSelector) {
-            $DKIM = Resolve-DnsName -Type TXT -Name "$($DkimSelector)._domainkey.$($Name)" @SplatParameters
+            $DKIM = Resolve-DnsName -Type TXT -Name "$($DkimSelector)._domainkey.$($domain)" @SplatParameters
             if ($DKIM.Type -eq "CNAME") {
                 while ($DKIM.Type -eq "CNAME") {
                     $DKIMCname = $DKIM.NameHost
                     $DKIM = Resolve-DnsName -Type TXT -name "$DKIMCname" @SplatParameters 
                 }
                 $DKIM = $DKIM | Select-Object -ExpandProperty Strings -ErrorAction SilentlyContinue
-                if ($DKIM -eq $null) {
+                if ($null -eq $DKIM) {
                     $DkimAdvisory = "No DKIM-record found for selector $($DkimSelector)._domainkey."
                 }
                 elseif ($DKIM -match "v=DKIM1" -or $DKIM -match "k=") {
@@ -75,7 +75,7 @@ function Get-DKIMRecord {
             } 
             else {
                 $DKIM = $DKIM | Select-Object -ExpandProperty Strings -ErrorAction SilentlyContinue
-                if ($DKIM -eq $null) {
+                if ($null -eq $DKIM) {
                     $DkimAdvisory = "No DKIM-record found for selector $($DkimSelector)._domainkey."
                 }
                 elseif ($DKIM -match "v=DKIM1" -or $DKIM -match "k=") {
@@ -85,14 +85,14 @@ function Get-DKIMRecord {
         }
         else {
             foreach ($DkimSelector in $DkimSelectors) {
-                $DKIM = Resolve-DnsName -Type TXT -Name  "$($DkimSelector)._domainkey.$($Name)" @SplatParameters
+                $DKIM = Resolve-DnsName -Type TXT -Name  "$($DkimSelector)._domainkey.$($domain)" @SplatParameters
                 if ($DKIM.Type -eq "CNAME") {
                     while ($DKIM.Type -eq "CNAME") {
                         $DKIMCname = $DKIM.NameHost
                         $DKIM = Resolve-DnsName -Type TXT -name "$DKIMCname" @SplatParameters 
                     }
                     $DKIM = $DKIM | Select-Object -ExpandProperty Strings -ErrorAction SilentlyContinue
-                    if ($DKIM -eq $null) {
+                    if ($null -eq $DKIM) {
                         $DkimAdvisory = "No DKIM-record found for selector $($DkimSelector)._domainkey."
                     }
                     elseif ($DKIM -match "v=DKIM1" -or $DKIM -match "k=") {
@@ -102,7 +102,7 @@ function Get-DKIMRecord {
                 }
                 else {
                     $DKIM = $DKIM | Select-Object -ExpandProperty Strings -ErrorAction SilentlyContinue
-                    if ($DKIM -eq $null) {
+                    if ($null -eq $DKIM) {
                         $DkimAdvisory = "We couldn't find a DKIM record associated with your domain."
                     }
                     elseif ($DKIM -match "v=DKIM1" -or $DKIM -match "k=") {
