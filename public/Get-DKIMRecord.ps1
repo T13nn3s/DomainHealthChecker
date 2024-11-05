@@ -39,17 +39,28 @@ function Get-DKIMRecord {
         }
                 
         # Custom list of DKIM-selectors
-        # https://help.sendmarc.com/support/solutions/articles/44001891845-email-provider-commonly-used-dkim-selectors
+        # See: https://help.sendmarc.com/support/solutions/articles/44001891845-email-provider-commonly-used-dkim-selectors
+        # See: https://www.reddit.com/r/DMARC/comments/1bffol7/list_of_most_common_dkim_selectors/
         $DkimSelectors = @(
             'selector1' # Microsoft
             'selector2' # Microsoft
-            'google', # Google
-            'everlytickey1', # Everlytic
-            'everlytickey2', # Everlytic
-            'eversrv', # Everlytic OLD selector
-            'k1', # Mailchimp / Mandrill
+            'google' # Google Workspace
+            'everlytickey1' # Everlytic
+            'everlytickey2' # Everlytic
+            'eversrv' # Everlytic OLD selector
+            'k1' # Mailchimp / Mandrill
+            'k2' # Mailchimp / Mandrill
             'mxvault' # Global Micro
             'dkim' # Hetzner
+            's1' # Sendgrid / NationBulder
+            's2' # Sendgrid / NationBuilder
+            'ctct1' # Constant Contact
+            'ctct2' # Constant Contact
+            'sm' # Blackbaud, eTapestry
+            'sig1' # iCloud
+            'litesrv' # MailerLite
+            'zendesk1' # Zendesk
+            'zendesk2' # Zendesk
         )
 
         $DKimObject = New-Object System.Collections.Generic.List[System.Object]
