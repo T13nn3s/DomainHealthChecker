@@ -2,8 +2,14 @@
 HelpInfoURI 'https://github.com/T13nn3s/Show-SpfDkimDmarc/blob/main/public/CmdletHelp/Invoke-SpfDkimDmarc.md'
 #>
 
-# Load functions
+# Load public functions
 Get-ChildItem -Path $PSScriptRoot\public\*.ps1 | 
+ForEach-Object {
+    . $_.FullName
+}
+
+# Load private functions
+Get-ChildItem -Path $PSScriptRoot\private\*.ps1 |
 ForEach-Object {
     . $_.FullName
 }
