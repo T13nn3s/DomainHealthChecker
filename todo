@@ -1,9 +1,18 @@
 // TODO: Things needs to be added in the new version
 
+~ Troubleshooting Get-DKIMRecord on macOS and Linux
+
 Added:
 - [x] New function `Get-MTASTS`.
-- [x] Added support for multiple values for the `-Name` parameter.
-- [] Add macOS support
+- [x] Added support for multiple values for the `-Name` parameter. 
+- [x] Added macOS and Linux support for Get-SPFRecord
+- [] Added macOS and Linux support for Get-MtaSts
+- [] Added macOS and Linux support for Get-DNSSEC
+- [x] Added macOS and Linux support for Get-DMARCRecord
+- [] Added macOS and Linux support for Get-DKIMRecord
+
+Updated:
+- [x] Default DKIM-selectors
 
 Fixes:
 - [x] Typo in SPF Length

@@ -1,6 +1,13 @@
 <#>
 .HelpInfoURI 'https://github.com/T13nn3s/Show-SpfDkimDmarc/blob/main/public/CmdletHelp/Get-DNSSec.md'
 #>
+
+# Load private functions
+Get-ChildItem -Path .\private\*.ps1 |
+ForEach-Object {
+    . $_.FullName
+}
+
 function Get-DNSSec {
     [CmdletBinding()]
     param(
@@ -21,6 +28,8 @@ function Get-DNSSec {
         Write-Verbose "Starting $($MyInvocation.MyCommand)"
         $PSBoundParameters | Out-String | Write-Verbose
 
+        $OsPlatform = (Get-OsPlatform).Platform
+
         if ($PSBoundParameters.ContainsKey('Server')) {
             $SplatParameters = @{
                 'Server'      = $Server
@@ -39,7 +48,16 @@ function Get-DNSSec {
     process {
 
         foreach ($domain in $Name) {
-            $DnsSec_record = Resolve-DnsName -Name $domain -Type 'DNSKEY' @SplatParameters
+
+            if ($OsPlatform -eq "Windows") {
+                $DnsSec_record = Resolve-DnsName -Name $domain -Type 'DNSKEY' @SplatParameters
+            }
+            Elseif ($OsPlatform -eq "macOS" -or $OsPlatform -eq "Linux") {
+                $DnsSec_record = $(dig +multi $domain DNSKEY)
+            }
+            Elseif ($OsPlatform -eq "macOS" -or $OsPlatform -eq "Linux" -and $Server) {
+                $DnsSec_record = $(dig +multi $domain DNSKEY @$SplatParameters.Server)
+            }
             foreach ($record in $DnsSec_record) {
                 if ($record.type -contains "DNSKEY") {
                     $DnsSec = "Domain is DNSSEC signed."

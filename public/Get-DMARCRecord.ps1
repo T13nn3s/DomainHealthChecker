@@ -1,6 +1,13 @@
 <#>
 HelpInfoURI 'https://github.com/T13nn3s/Show-SpfDkimDmarc/blob/main/public/CmdletHelp/Get-DMARCRecord.md'
 #>
+
+# Load private functions
+Get-ChildItem -Path .\private\*.ps1 |
+ForEach-Object {
+    . $_.FullName
+}
+
 function Get-DMARCRecord {
     [CmdletBinding()]
     param(
@@ -24,6 +31,8 @@ function Get-DMARCRecord {
         Write-Verbose "Starting $($MyInvocation.MyCommand)"
         $PSBoundParameters | Out-String | Write-Verbose
 
+        $OsPlatform = (Get-OsPlatform).Platform
+
         $DMARCObject = New-Object System.Collections.Generic.List[System.Object]     
 
     } Process {
@@ -44,8 +53,15 @@ function Get-DMARCRecord {
                     'Name'        = "_dmarc.$($domain)"
                     'ErrorAction' = 'SilentlyContinue'
                 }
-
-                $DMARC = Resolve-DnsName @SplatParameters | Select-Object -ExpandProperty strings -ErrorAction SilentlyContinue
+                if ($OsPlatform -eq "Windows") {
+                    $DMARC = Resolve-DnsName @SplatParameters | Select-Object -ExpandProperty strings -ErrorAction SilentlyContinue
+                }
+                Elseif ($OsPlatform -eq "macOS" -or $OsPlatform -eq "Linux") {
+                    $DMARC = $(dig +short _dmarc.$domain TXT)
+                }
+                Elseif ($OsPlatform -eq "macOS" -or $OsPlatform -eq "Linux" -and $Server) {
+                    $DMARC = $(dig +short _dmarc.$domain TXT @$SplatParameters.Server)
+                }
                 if ($null -eq $DMARC) {
                     $DmarcAdvisory = "Does not have a DMARC record. This domain is at risk to being abused by phishers and spammers."
                 }

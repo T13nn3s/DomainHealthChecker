@@ -1,6 +1,13 @@
 <#>
 .HelpInfoURI 'https://github.com/T13nn3s/Show-SpfDkimDmarc/blob/main/public/CmdletHelp/Get-SPFRecord.md'
 #>
+
+# Load private functions
+Get-ChildItem -Path .\private\*.ps1 |
+ForEach-Object {
+    . $_.FullName
+}
+
 function Get-SPFRecord {
     [CmdletBinding()]
     param(
@@ -21,6 +28,8 @@ function Get-SPFRecord {
         Write-Verbose "Starting $($MyInvocation.MyCommand)"
         $PSBoundParameters | Out-String | Write-Verbose
 
+        $OsPlatform = (Get-OsPlatform).Platform
+
         if ($PSBoundParameters.ContainsKey('Server')) {
             $SplatParameters = @{
                 'Server'      = $Server
@@ -37,13 +46,32 @@ function Get-SPFRecord {
     }
 
     Process {
+
         foreach ($domain in $Name) {
-            $SPF = Resolve-DnsName -Name $domain -Type TXT @SplatParameters | where-object { $_.strings -match "v=spf1" } | Select-Object -ExpandProperty strings -ErrorAction SilentlyContinue
-            
+
+            if ($OsPlatform -eq "Windows") {
+                $SPF = Resolve-DnsName -Name $domain -Type TXT @SplatParameters | where-object { $_.strings -match "v=spf1" } | Select-Object -ExpandProperty strings -ErrorAction SilentlyContinue
+            }
+            Elseif ($OsPlatform -eq "macOS" -or $OsPlatform -eq "Linux") {
+                $SPF = $(dig +short $domain TXT | grep "v=spf1" | Out-String)
+            }
+            Elseif ($OsPlatform -eq "macOS" -or $OsPlatform -eq "Linux" -and $Server) {
+                $SPF = $(dig +short $domain TXT @$SplatParameters.Server | grep "v=spf1" | Out-String)
+            }
+
             if ($SPF -match "redirect") {
                 $redirect = $SPF.Split(" ")
                 $RedirectName = $redirect -match "redirect" -replace "redirect="
-                $SPF = Resolve-DnsName -Name "$RedirectName" -Type TXT @SplatParameters | where-object { $_.strings -match "v=spf1" } | Select-Object -ExpandProperty strings -ErrorAction SilentlyContinue
+
+                if ($OsPlatform -eq "Windows") {
+                    $SPF = Resolve-DnsName -Name "$RedirectName" -Type TXT @SplatParameters | where-object { $_.strings -match "v=spf1" } | Select-Object -ExpandProperty strings -ErrorAction SilentlyContinue
+                }
+                Elseif ($OsPlatform -eq "macOS" -or $POslatform -eq "Linux") {
+                    $SPF = $(dig +short $RedirectName TXT @$Server | grep "v=spf1" | Out-String)
+                }
+                Elseif ($OsPlatform -eq "macOS" -or $OsPlatform -eq "Linux" -and $Server) {
+                    $SPF = $(dig +short $RedirectName TXT @$SplatParameters.Server | grep "v=spf1" | Out-String)
+                }
             }
 
             # Check for multiple SPF records
