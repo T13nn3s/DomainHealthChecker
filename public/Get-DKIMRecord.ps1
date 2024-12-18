@@ -98,12 +98,22 @@ function Get-DKIMRecord {
                     }
                 } 
                 else {
-                    $DKIM = $DKIM | Select-Object -ExpandProperty Strings -ErrorAction SilentlyContinue
-                    if ($null -eq $DKIM) {
-                        $DkimAdvisory = "No DKIM-record found for selector $($DkimSelector)._domainkey."
+                    if ($OsPlatform -eq "Windows") {
+                        $DKIM = $DKIM | Select-Object -ExpandProperty Strings -ErrorAction SilentlyContinue
+                        if ($null -eq $DKIM) {
+                            $DkimAdvisory = "No DKIM-record found for selector $($DkimSelector)._domainkey."
+                        }
+                        elseif ($DKIM -match "v=DKIM1" -or $DKIM -match "k=") {
+                            $DkimAdvisory = "DKIM-record found."
+                        }
                     }
-                    elseif ($DKIM -match "v=DKIM1" -or $DKIM -match "k=") {
-                        $DkimAdvisory = "DKIM-record found."
+                    Elseif ($OsPlatform -eq "macOS" -or $OsPlatform -eq "Linux") {
+                        if ($null -eq $DKIM) {
+                            $DkimAdvisory = "No DKIM-record found for selector $($DkimSelector)._domainkey."
+                        }
+                        elseif ($DKIM -match "v=DKIM1" -or $DKIM -match "k=") {
+                            $DkimAdvisory = "DKIM-record found."
+                        }
                     }
                 }
             }
@@ -131,20 +141,30 @@ function Get-DKIMRecord {
                             $DkimAdvisory = "DKIM-record found."
                             break
                         }
-                    }
-                    else {
-                        $DKIM = $DKIM | Select-Object -ExpandProperty Strings -ErrorAction SilentlyContinue
-                        if ($null -eq $DKIM) {
-                            $DkimAdvisory = "We couldn't find a DKIM record associated with your domain."
+                    } else {
+                        if ($OsPlatform -eq "Windows") {
+                            $DKIM = $DKIM | Select-Object -ExpandProperty Strings -ErrorAction SilentlyContinue
+                            if ($null -eq $DKIM) {
+                                $DkimAdvisory = "We couldn't find a DKIM record associated with your domain."
+                            }
+                            elseif ($DKIM -match "v=DKIM1" -or $DKIM -match "k=") {
+                                $DkimAdvisory = "DKIM-record found."
+                                break
+                            }
                         }
-                        elseif ($DKIM -match "v=DKIM1" -or $DKIM -match "k=") {
-                            $DkimAdvisory = "DKIM-record found."
-                            break
+                        Elseif ($OsPlatform -eq "macOS" -or $OsPlatform -eq "Linux") {
+                            if ($null -eq $DKIM) {
+                                $DkimAdvisory = "No DKIM-record found for selector $($DkimSelector)._domainkey."
+                            }
+                            elseif ($DKIM -match "v=DKIM1" -or $DKIM -match "k=") {
+                                $DkimAdvisory = "DKIM-record found."
+                                break
+                            }
                         }
                     }
-                 
                 }
             }
+            
             $DkimReturnValues = New-Object psobject
             $DkimReturnValues | Add-Member NoteProperty "Name" $domain
             $DkimReturnValues | Add-Member NoteProperty "DkimRecord" $DKIM
@@ -155,4 +175,4 @@ function Get-DKIMRecord {
         }
     } end {}
 }
-Set-Alias gdkim -Value Get-DKIMRecord     
+Set-Alias gdkim -Value Get-DKIMRecord
