@@ -100,12 +100,42 @@ function Get-SPFRecord {
             }
         }
 
+                # SPF DNS Lookup check
+        # Don't exceed ten DNS lookups
+        Write-Verbose "Starting SPF DNS Lookup Counter"
+        $SPF = $SPF -split " "
+        $DNSLookupCounter = 0
+        Write-Verbose "DNS Lookup counter starts with $($DNSLookupCounter)"
+        switch -regex ($SPF) {
+            '^a$' {
+                $DNSLookupCounter++
+            }
+            '^mx$' {
+                $DNSLookupCounter++
+            }
+            '^ptr$' {
+                $DNSLookupCounter++
+            }
+            '^include:' {
+                $DNSLookupCounter++
+            }
+            '^exists:' {
+                $DNSLookupCounter++
+            }
+            '^redirect:' {
+                $DNSLookupCounter++
+            }
+        }
+        Write-Verbose "DNS Lookup counter founds $($DNSLookupCounter) dns lookups"
+        
+
         foreach ($domain in $name) {
 
             $SpfReturnValues = New-Object psobject
             $SpfReturnValues | Add-Member NoteProperty "Name" $domain
             $SpfReturnValues | Add-Member NoteProperty "SPFRecord" "$($SPF)"
             $SpfReturnValues | Add-Member NoteProperty "SPFRecordLength" "$($SpfTotalLenght)"
+            $SpfReturnValues | Add-Member NoteProperty "SPFDnsLookupCounter" $DNSLookupCounter
             $SpfReturnValues | Add-Member NoteProperty "SPFAdvisory" $SpfAdvisory
             $SpfObject.Add($SpfReturnValues)
             $SpfReturnValues
